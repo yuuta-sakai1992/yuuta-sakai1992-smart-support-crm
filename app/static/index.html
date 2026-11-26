@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartSupport AI | カスタマーサポート自動分類＆回答案生成CRM</title>
+  <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <header class="bg-indigo-700 text-white shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
+          <span>🤖 SmartSupport AI</span>
+          <span class="text-xs font-normal bg-indigo-500 px-2.5 py-0.5 rounded-full">SaaS CS支援CRM</span>
+        </h1>
+        <p class="text-xs text-indigo-100 mt-0.5">お問い合わせの自動カテゴリ分類・緊急度判定・一次回答案生成ダッシュボード</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <span id="ai-mode-badge" class="text-xs bg-emerald-500/20 border border-emerald-300/40 text-emerald-100 px-3 py-1.5 rounded-full font-medium">
+          読み込み中...
+        </span>
+        <a href="/docs" target="_blank" class="text-xs bg-indigo-600 hover:bg-indigo-500 border border-indigo-400 px-3 py-1.5 rounded-lg transition">
+          📄 API仕様書 (Swagger)
+        </a>
+        <button onclick="resetDemoData()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition">
+          🔄 初期データにリセット
+        </button>
+      </div>
+    </div>
+  </header>
+<div style="max-width:1024px; margin:12px auto 0; padding:0 16px; display:flex; gap:8px; flex-wrap:wrap;">
+  <button type="button" id="tab-admin" onclick="switchViewMode('admin')" style="background:#4f46e5; color:#fff; font-weight:bold;">
+    🛠️ CS担当者ダッシュボード（全機能・デモ表示）
+  </button>
+  <button type="button" id="tab-customer" onclick="switchViewMode('customer')" style="background:#e2e8f0; color:#1e293b; font-weight:bold;">
+    👤 顧客用お問い合わせ窓口（他社情報・管理画面を非表示）
+  </button>
+</div>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <p class="text-xs text-slate-500 font-medium">総お問い合わせ件数</p>
+        <p id="kpi-total" class="text-2xl font-bold text-slate-800 mt-1">0 件</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <p class="text-xs text-slate-500 font-medium">未対応のチケット</p>
+        <p id="kpi-unanswered" class="text-2xl font-bold text-amber-600 mt-1">0 件</p>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <p class="text-xs text-slate-500 font-medium">緊急度「高」（要即時対応）</p>
+        <p id="kpi-high" class="text-2xl font-bold text-rose-600 mt-1">0 件</p>
+      </div>
+    </section>
+
+    <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+<section class="card" style="margin-bottom: 16px; border-left: 4px solid #6366f1;">
+  <h3 style="margin-top:0;">🔔 Discord / Slack リアルタイム通知連携（デモ体験用）</h3>
+  <p style="font-size:0.85rem; color:#64748b; margin-bottom:8px;">
+    ご自身のWebhook URLを入力すると、接続テストや「緊急度:高」登録時の即時通知を体験できます。
+  </p>
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <input type="url" id="webhook-url" placeholder="https://discord.com... または https://slack.com..." style="flex:1; min-width:260px;">
+    <button type="button" onclick="testWebhook()" style="background:#4f46e5;">📡 テスト送信</button>
+  </div>
+  <div id="webhook-status" style="font-size:0.82rem; margin-top:6px;"></div>
+</section>
+
+        <h2 class="text-base font-bold text-slate-800">📩 新規お問い合わせ登録（AI自動解析）</h2>
+        <button type="button" onclick="fillSampleInquiry()" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold px-3 py-1.5 rounded-lg border border-indigo-200 transition">
+          🧪 サンプル問い合わせを自動入力（デモ体験）
+        </button>
+      </div>
+      <form id="inquiry-form" class="space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">顧客名・会社名 *</label>
+            <input type="text" id="customer_name" required placeholder="例：株式会社サンプル 田中" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">メールアドレス *</label>
+            <input type="email" id="email" required placeholder="例：tanaka@example.com" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>        <div style="margin-top:8px;">
+          <label style="font-size:0.75rem; font-weight:bold; color:#475569; display:block; margin-bottom:4px;">
+            🔐 本人確認用パスコード（任意・設定すると次回同じメール＋パスコード入力時のみ前回履歴を照合できます）
+          </label>
+          <input type="password" id="passcode" placeholder="例：1234 や任意の合言葉（他者への履歴表示を防止）"
+            class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        </div>
+        <div id="past-inquiry-box" style="display:none; background:#fffbeb; border:1px solid #fcd34d; border-radius:8px; padding:10px 12px; margin:8px 0; font-size:0.85rem;">
+          <div style="font-weight:bold; color:#92400e; margin-bottom:4px;">
+            💡 過去のお問い合わせ履歴が見つかりました
+          </div>
+          <div id="past-inquiry-summary" style="color:#78350f; margin-bottom:8px;"></div>
+          <div style="display:flex; gap:16px; flex-wrap:wrap;">
+            <label style="cursor:pointer;">
+              <input type="radio" name="inquiry-relation" value="new" checked> 🆕 別件・新規のお問い合わせ
+            </label>
+            <label style="cursor:pointer; font-weight:bold; color:#b45309;">
+              <input type="radio" name="inquiry-relation" value="followup"> 🔁 前回の継続・再発（まだ直っていない等）
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">お問い合わせ本文 *</label>
+          <textarea id="content" rows="3" required placeholder="顧客からのお問い合わせ内容を入力してください。AIが自動でカテゴリ・緊急度を判定し、回答案を作成します。" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+<div style="margin: 10px 0;">
+  <label style="font-size:0.85rem; font-weight:bold; display:block; margin-bottom:4px;">
+    📷 エラー画面・スクリーンショット添付（任意・自動リサイズ対応）
+  </label>
+  <input type="file" id="image-input" accept="image/*" onchange="previewSelectedImage(event)" style="font-size:0.85rem;">
+  <div id="image-preview-box" style="display:none; margin-top:8px; position:relative; width:fit-content;">
+    <img id="image-preview" src="" alt="プレビュー" style="max-height:140px; border-radius:8px; border:1px solid #cbd5e1;">
+    <button type="button" onclick="clearSelectedImage()" style="position:absolute; top:4px; right:4px; background:rgba(15,23,42,0.75); color:#fff; padding:2px 8px; font-size:0.75rem;">✕ 削除</button>
+  </div>
+</div>
+
+        <div class="flex justify-end">
+          <button type="submit" id="submit-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2 rounded-lg shadow-sm transition">
+            ✨ AI解析して登録する
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="space-y-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <select id="filter-status" onchange="fetchInquiries()" class="text-sm border border-slate-300 rounded-lg px-3 py-1.5 bg-white">
+            <option value="すべて">ステータス: すべて</option>
+            <option value="未対応">未対応</option>
+            <option value="対応中">対応中</option>
+            <option value="完了">完了</option>
+          </select>
+          <select id="filter-priority" onchange="fetchInquiries()" class="text-sm border border-slate-300 rounded-lg px-3 py-1.5 bg-white">
+            <option value="すべて">緊急度: すべて</option>
+            <option value="高">緊急度: 高</option>
+            <option value="中">緊急度: 中</option>
+            <option value="低">緊急度: 低</option>
+          </select>
+        </div>
+        <div class="flex-1 min-w-[220px] max-w-md">
+          <input type="text" id="search-input" oninput="fetchInquiries()" placeholder="🔍 顧客名・本文・カテゴリで検索..." class="w-full text-sm border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+      </div>
+
+      <div id="inquiry-list" class="space-y-3"></div>
+    </section>
+  </main>
+<div id="sim-modal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); z-index:50; align-items:center; justify-content:center; padding:16px;">
+  <div style="background:#fff; max-width:560px; width:100%; border-radius:12px; padding:20px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.2);">
+    <h3 style="margin-top:0;">✉️ 自動返信メール送信シミュレーション</h3>
+    <p style="font-size:0.82rem; color:#64748b;">※デモ環境のため実メールは送信されず、送信ログ記録とステータス「対応中」への更新を行います。</p>
+    <div style="background:#f8fafc; padding:12px; border-radius:8px; font-size:0.85rem; margin-bottom:12px; border:1px solid #e2e8f0;">
+      <div><strong>宛先：</strong><span id="sim-to"></span></div>
+      <div><strong>件名：</strong>Re: お問い合わせありがとうございます（SmartSupport AI 自動応答）</div>
+      <hr style="border:none; border-top:1px solid #cbd5e1; margin:8px 0;">
+      <pre id="sim-body" style="white-space:pre-wrap; font-family:inherit; margin:0;"></pre>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button type="button" onclick="closeSimModal()" style="background:#94a3b8;">キャンセル</button>
+      <button type="button" onclick="confirmSimulateReply()" style="background:#059669;">🚀 送信シミュレーション実行（対応中に更新）</button>
+    </div>
+  </div>
+</div>
+
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

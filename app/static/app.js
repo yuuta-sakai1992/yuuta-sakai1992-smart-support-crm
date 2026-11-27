@@ -6,7 +6,7 @@ const SAMPLE_INQUIRIES = [
   },
   {
     customer_name: "大濠クラウドサービス 伊藤",
-    email: "ito@://example.com",
+    email: "ito@ohori-cloud.example.jp",
     content: "来期から部署全体で導入したく、30アカウント分の年間契約見積書を発行していただけますでしょうか？"
   },
   {
@@ -353,6 +353,9 @@ function switchViewMode(mode) {
   document.getElementById("webhook-url")?.closest("section")?.style.setProperty("display", isCust ? "none" : "");
   document.getElementById("filter-status")?.parentElement?.parentElement?.style.setProperty("display", isCust ? "none" : "");
   document.getElementById("inquiry-list").style.display = isCust ? "none" : "";
+  const opWrap = document.getElementById("operator-name")?.parentElement;
+  if (opWrap) opWrap.style.cssText = isCust ? "display:none !important;" : "margin-left:auto; display:flex; align-items:center; gap:6px; font-size:0.85rem;";
+  document.querySelector('button[onclick="fillSampleInquiry()"]')?.style.setProperty("display", isCust ? "none" : "");
 }
 document.addEventListener("DOMContentLoaded", () => {
   const tabBar = document.getElementById("tab-admin")?.parentElement;

@@ -6,7 +6,30 @@ Web系SaaS企業のカスタマーサポート（CS）現場における **「�
 
 ---
 
+## 📸 アプリケーション画面（スクリーンショット）
+
+### 1. CS担当者ダッシュボード＆KPIサマリー
+<img width="1422" height="438" alt="スクリーンショット 2026-11-27 142721" src="https://github.com/user-attachments/assets/e8de3351-cfb2-4f3e-b8e8-28d73aa5d393" />
+
+
+### 2. Discord / Slack リアルタイム障害通知（緊急度「高」検知時）
+<img width="852" height="231" alt="スクリーンショット 2026-11-27 144353" src="https://github.com/user-attachments/assets/3b6ae03c-6887-4f8b-87fe-9e2036a1f3d4" />
+
+
+### 3. 新規お問い合わせ登録＆Webhook連携設定
+<img width="1357" height="756" alt="スクリーンショット 2026-11-27 142731" src="https://github.com/user-attachments/assets/46003ddc-716a-43a4-8b80-3effe4165629" />
+
+
+### 4. 顧客用お問い合わせ窓口＆2要素照合による過去履歴チェック
+<img width="1408" height="822" alt="スクリーンショット 2026-11-27 142846" src="https://github.com/user-attachments/assets/3bb04b11-52bd-457c-add0-c4258a4b15f6" />
+
+
+---
+
 ## 🎯 開発背景と解決した現場課題
+<img width="1422" height="438" alt="スクリーンショット 2026-11-27 142721" src="https://github.com/user-attachments/assets/5b2def1e-f0ef-4cde-b7a1-8a9303dc1c09" />
+<img width="1422" height="438" alt="スクリーンショット 2026-11-27 142721" src="https://github.com/user-attachments/assets/5543eaa1-8322-482d-b082-3285e80eb4fa" />
+
 
 自社開発SaaSのプロダクト成長に伴い問い合わせ件数が増加すると、CS現場では以下の課題が発生します。
 

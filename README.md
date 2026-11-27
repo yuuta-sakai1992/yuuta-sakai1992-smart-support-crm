@@ -55,7 +55,8 @@ Web系SaaS企業のカスタマーサポート（CS）現場における **「�
 
 ```bash
 git clone https://github.com
-cd smart-support-crm
+cd yuuta-sakai1992-smart-support-crm
+
 ```
 
 ### Windows の場合（推奨）
